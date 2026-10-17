@@ -13,7 +13,7 @@ SETTINGS_PATH = os.path.join(
     "myra_settings.json",
 )
 
-DEFAULT_MODEL = "gemini-2.5-flash"
+DEFAULT_MODEL = "gemini-3.8-flash"
 
 SYSTEM_TEXT = (
     "You are Myra, a friendly smart assistant. "
@@ -243,6 +243,7 @@ HOME_PAGE = """<!DOCTYPE html>
     <div class="menu" id="menu">
       <a href="/settings">&#9881; Settings</a>
       <a href="#" onclick="show('home');toggleMenu();return false;">&#127968; Home</a>
+      <a href="#" id="spk" onclick="toggleSpeak();return false;">&#128266; Awaaz: ON</a>
     </div>
   </header>
 
@@ -328,6 +329,7 @@ async function sendMsg() {
     if (d.ok) {
       chatHistory.push({role: 'user', text: text});
       chatHistory.push({role: 'model', text: d.reply});
+      speak(d.reply);
     }
   } catch (e) {
     wait.textContent = 'Error ' + e;
@@ -336,10 +338,28 @@ async function sendMsg() {
 document.getElementById('msg').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') sendMsg();
 });
+var speakOn = true;
+function toggleSpeak() {
+  speakOn = !speakOn;
+  document.getElementById('spk').innerHTML = speakOn ? '&#128266; Awaaz: ON' : '&#128263; Awaaz: OFF';
+  if (!speakOn && window.speechSynthesis) window.speechSynthesis.cancel();
+  toggleMenu();
+}
+function speak(text) {
+  if (!speakOn || !window.speechSynthesis) return;
+  try {
+    window.speechSynthesis.cancel();
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang = /[\u0900-\u097F]/.test(text) ? 'hi-IN' : 'en-IN';
+    window.speechSynthesis.speak(u);
+  } catch (e) {}
+}
 function voice() {
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) {
-    alert('Voice abhi is app mein kaam nahi karta.');
+    var box = document.getElementById('msg');
+    box.focus();
+    alert('Is app mein mic abhi seedha nahi chalta. Keyboard ka mic (\ud83c\udfa4) dabakar bolein, phir Send dabayein.');
     return;
   }
   var r = new SR();
