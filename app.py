@@ -4,7 +4,7 @@ import ssl
 import urllib.request
 import urllib.error
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 
 app = Flask(__name__)
 
@@ -89,8 +89,8 @@ def chat():
     s = load_settings()
     key = s.get("api_key", "")
     if not key:
-        return jsonify(ok=False, reply="Pehle upar Settings mein API key daalein.")
-    model = s.get("model") or DEFAULT_MODEL
+        return jsonify(ok=False, reply="Pehle menu mein Settings kholkar API key daalein.")
+    model = (s.get("model") or DEFAULT_MODEL).strip()
     contents = []
     for h in (data.get("history") or [])[-12:]:
         if not isinstance(h, dict):
@@ -119,95 +119,30 @@ def save():
     return jsonify(ok=True)
 
 
-STYLE = """
+@app.route("/logo")
+def logo():
+    here = os.path.dirname(os.path.abspath(__file__))
+    return send_from_directory(here, "icon.png")
+
+
+SETTINGS_STYLE = """
 <style>
-  body { margin:0; padding:20px; background:#070812; color:#fff;
+  body { margin:0; padding:20px; background:#0a0f24; color:#fff;
          font-family:Roboto,Arial,sans-serif; text-align:center; }
-  h1 { color:#b36bff; font-size:42px; margin:10px 0 4px; }
-  .sub { margin-bottom:18px; }
-  a.top { color:#b36bff; text-decoration:none; font-size:18px; }
+  h1 { color:#b36bff; font-size:38px; margin:10px 0 4px; }
+  a.top { color:#8fa6ff; text-decoration:none; font-size:18px; }
   input { width:84%; max-width:420px; padding:14px 16px; font-size:17px;
-          border-radius:20px; border:2px solid #7c3aed; margin:6px 0; }
-  button { background:#6d28d9; color:#fff; font-size:18px; padding:12px 22px;
-           margin:8px 6px; border:1px solid #8b5cf6; border-radius:16px; }
-  #log { margin-top:18px; text-align:left; max-width:460px; margin-left:auto;
-         margin-right:auto; }
-  .you { background:#1e1b4b; padding:10px 14px; border-radius:14px; margin:8px 0; }
-  .myra { background:#2e1065; padding:10px 14px; border-radius:14px; margin:8px 0; }
+          border-radius:20px; border:2px solid #4f7cff; margin:6px 0; }
+  button { background:#4f7cff; color:#fff; font-size:18px; padding:12px 26px;
+           margin:10px 6px; border:0; border-radius:16px; }
   .note { color:#a5a5c0; font-size:14px; }
 </style>
-"""
-
-CHAT_PAGE = """<!DOCTYPE html>
-<html><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Myra AI</title>""" + STYLE + """</head>
-<body>
-  <div style="text-align:right"><a class="top" href="/settings">&#9881; Settings</a></div>
-  <h1>Myra AI</h1>
-  <div class="sub">Your Smart AI Assistant</div>
-  <input id="msg" placeholder="Apna message likhein">
-  <div>
-    <button onclick="send()">Send</button>
-    <button onclick="voice()">&#127908; Voice</button>
-  </div>
-  <div id="log"></div>
-<script>
-let history = [];
-function add(cls, text) {
-  const d = document.createElement('div');
-  d.className = cls;
-  d.textContent = text;
-  document.getElementById('log').prepend(d);
-  return d;
-}
-async function send() {
-  const box = document.getElementById('msg');
-  const text = box.value.trim();
-  if (!text) return;
-  add('you', 'Aap: ' + text);
-  box.value = '';
-  const wait = add('myra', 'Myra AI: ...');
-  try {
-    const r = await fetch('/chat', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({history: history, msg: text})
-    });
-    const d = await r.json();
-    wait.textContent = 'Myra AI: ' + d.reply;
-    if (d.ok) {
-      history.push({role: 'user', text: text});
-      history.push({role: 'model', text: d.reply});
-    }
-  } catch (e) {
-    wait.textContent = 'Myra AI: Error ' + e;
-  }
-}
-document.getElementById('msg').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') send();
-});
-function voice() {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) {
-    alert('Is ek jagah voice abhi kaam nahi karta.');
-    return;
-  }
-  const r = new SR();
-  r.lang = 'hi-IN';
-  r.onresult = function(e) {
-    document.getElementById('msg').value = e.results[0][0].transcript;
-  };
-  r.start();
-}
-</script>
-</body></html>
 """
 
 SETTINGS_PAGE = """<!DOCTYPE html>
 <html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Settings</title>""" + STYLE + """</head>
+<title>Settings</title>""" + SETTINGS_STYLE + """</head>
 <body>
   <div style="text-align:left"><a class="top" href="/">&larr; Wapas</a></div>
   <h1>Settings</h1>
@@ -236,10 +171,202 @@ async function save() {
 </body></html>
 """
 
+HOME_PAGE = """<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Myra AI</title>
+<style>
+  :root { --card:#121a38; --line:#24305e; --mut:#8f9bc7; --acc:#4f7cff; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { margin:0; height:100%; color:#e9edff;
+    background:radial-gradient(120% 80% at 50% 15%, #16245a 0%, #0a0f24 60%);
+    font-family:Roboto,Arial,sans-serif; }
+  #app { height:100%; display:flex; flex-direction:column; max-width:520px; margin:0 auto; }
+  header { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; position:relative; }
+  header .t { font-size:22px; font-weight:600; }
+  .ib { background:none; border:0; color:#e9edff; font-size:28px; padding:4px 8px; }
+  .av { width:42px; height:42px; border-radius:12px; border:1px solid var(--line); object-fit:cover; }
+  .menu { display:none; position:absolute; top:62px; left:14px; background:#121a38;
+    border:1px solid var(--line); border-radius:14px; padding:6px; z-index:5; }
+  .menu a { display:block; color:#e9edff; text-decoration:none; padding:12px 18px; font-size:17px; }
+  main { flex:1; overflow-y:auto; padding:0 18px 10px; }
+  .view { display:none; }
+  .view.on { display:block; }
+  .hi { color:var(--mut); font-size:30px; margin:6px 0 0; }
+  .hi b { display:block; color:#fff; font-size:40px; }
+  .sub { color:var(--mut); margin:8px 0 6px; }
+  .orb { position:relative; width:250px; height:250px; margin:8px auto; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:radial-gradient(circle, #101a44 58%, transparent 59%);
+    box-shadow:0 0 50px rgba(79,124,255,.25); }
+  .orb::before { content:""; position:absolute; inset:0; border-radius:50%;
+    border:6px solid transparent;
+    border-top-color:#8fa6ff; border-right-color:#b36bff;
+    animation:spin 6s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .orb .n { font-size:38px; font-weight:700; letter-spacing:4px;
+    background:linear-gradient(90deg,#8fa6ff,#ffffff,#d36bff);
+    -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .orb small { position:absolute; top:78px; color:var(--mut); letter-spacing:3px; font-size:11px; }
+  .row { display:flex; gap:10px; margin:10px 0; }
+  .chip, .card { flex:1; background:rgba(18,26,56,.85); border:1px solid var(--line);
+    border-radius:18px; color:#e9edff; font-size:16px; padding:14px 8px; text-align:center; }
+  .card { text-align:left; padding:12px 14px; }
+  .card small { color:var(--mut); display:block; }
+  .card b { font-size:22px; }
+  .bar { display:flex; align-items:center; gap:8px; margin:6px 18px 10px;
+    background:rgba(18,26,56,.95); border:1px solid var(--line);
+    border-radius:28px; padding:5px 6px 5px 18px; }
+  .bar input { flex:1; min-width:0; background:none; border:0; outline:0; color:#fff;
+    font-size:17px; padding:10px 0; }
+  .send { background:#1c2a5c; border:0; color:#fff; width:44px; height:44px;
+    border-radius:50%; font-size:20px; }
+  nav { display:flex; justify-content:space-around; align-items:flex-end;
+    padding:8px 6px calc(10px + env(safe-area-inset-bottom, 0px));
+    background:#0d1330; border-top:1px solid var(--line); }
+  nav button { background:none; border:0; color:var(--mut); font-size:13px; padding:6px 10px; }
+  nav button span { display:block; font-size:22px; }
+  nav button.on { color:var(--acc); }
+  nav .mic { width:66px; height:66px; border-radius:50%; background:var(--acc);
+    border:4px solid #0d1330; color:#fff; font-size:28px; margin-top:-34px; padding:0; }
+  .msg { padding:10px 14px; border-radius:16px; margin:8px 0; max-width:90%; white-space:pre-wrap; }
+  .you { background:#1c2a5c; margin-left:auto; }
+  .myra { background:#2a1a5e; }
+  .soon { color:var(--mut); text-align:center; margin-top:60px; font-size:18px; }
+</style></head>
+<body>
+<div id="app">
+  <header>
+    <button class="ib" onclick="toggleMenu()">&#9776;</button>
+    <div class="t">Myra</div>
+    <img class="av" src="/logo" onerror="this.style.visibility='hidden'">
+    <div class="menu" id="menu">
+      <a href="/settings">&#9881; Settings</a>
+      <a href="#" onclick="show('home');toggleMenu();return false;">&#127968; Home</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="view on" id="v-home">
+      <div class="hi"><span id="greet">Namaste,</span><b>dost</b></div>
+      <div class="sub">Myra aapki madad ke liye tayyar hai.</div>
+      <div class="orb"><small>AI ASSISTANT</small><div class="n">M.Y.R.A</div></div>
+      <div class="row">
+        <button class="chip" onclick="starter('Mujhe achhe gaane suggest karo')">&#127925; Music</button>
+        <button class="chip" onclick="starter('Mujhe padhai mein madad chahiye: ')">&#128214; Study</button>
+        <button class="chip" onclick="starter('Aaj mera din aisa raha: ')">&#9998; Journal</button>
+      </div>
+      <div class="row">
+        <div class="card"><small>&#9729; Weather</small><b>&mdash;</b><small>Jald aayega</small></div>
+        <div class="card"><small>&#128197; Today</small><b id="day">--</b><small id="dm">--</small></div>
+        <div class="card"><small>&#10084; Mood</small><b>Warm</b><small>All good</small></div>
+      </div>
+    </div>
+
+    <div class="view" id="v-chat"><div id="log"></div></div>
+    <div class="view" id="v-scan"><div class="soon">Scan abhi nahi bana.<br>Jald aayega.</div></div>
+    <div class="view" id="v-mem"><div class="soon">Memories abhi nahi bani.<br>Jald aayengi.</div></div>
+  </main>
+
+  <div class="bar">
+    <input id="msg" placeholder="Myra se kuch bhi puchhein...">
+    <button class="send" onclick="sendMsg()">&#10148;</button>
+  </div>
+
+  <nav>
+    <button id="n-home" class="on" onclick="show('home')"><span>&#127968;</span>Home</button>
+    <button id="n-scan" onclick="show('scan')"><span>&#128247;</span>Scan</button>
+    <button class="mic" onclick="voice()">&#127908;</button>
+    <button id="n-mem" onclick="show('mem')"><span>&#129504;</span>Memories</button>
+    <button id="n-chat" onclick="show('chat')"><span>&#128172;</span>Chat</button>
+  </nav>
+</div>
+
+<script>
+var chatHistory = [];
+var names = ['home', 'chat', 'scan', 'mem'];
+
+function show(name) {
+  for (var i = 0; i < names.length; i++) {
+    document.getElementById('v-' + names[i]).className = 'view' + (names[i] === name ? ' on' : '');
+    document.getElementById('n-' + names[i]).className = (names[i] === name ? 'on' : '');
+  }
+}
+function toggleMenu() {
+  var m = document.getElementById('menu');
+  m.style.display = (m.style.display === 'block') ? 'none' : 'block';
+}
+function starter(t) {
+  var box = document.getElementById('msg');
+  box.value = t;
+  box.focus();
+}
+function add(cls, text) {
+  var d = document.createElement('div');
+  d.className = 'msg ' + cls;
+  d.textContent = text;
+  document.getElementById('log').appendChild(d);
+  d.scrollIntoView();
+  return d;
+}
+async function sendMsg() {
+  var box = document.getElementById('msg');
+  var text = box.value.trim();
+  if (!text) return;
+  show('chat');
+  add('you', text);
+  box.value = '';
+  var wait = add('myra', '...');
+  try {
+    var r = await fetch('/chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({history: chatHistory, msg: text})
+    });
+    var d = await r.json();
+    wait.textContent = d.reply;
+    if (d.ok) {
+      chatHistory.push({role: 'user', text: text});
+      chatHistory.push({role: 'model', text: d.reply});
+    }
+  } catch (e) {
+    wait.textContent = 'Error ' + e;
+  }
+}
+document.getElementById('msg').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') sendMsg();
+});
+function voice() {
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    alert('Voice abhi is app mein kaam nahi karta.');
+    return;
+  }
+  var r = new SR();
+  r.lang = 'hi-IN';
+  r.onresult = function(e) {
+    document.getElementById('msg').value = e.results[0][0].transcript;
+  };
+  r.start();
+}
+(function() {
+  var now = new Date();
+  var h = now.getHours();
+  var g = h < 5 ? 'Raat ke jaag rahe ho,' : h < 12 ? 'Shubh prabhat,' : h < 17 ? 'Namaste,' : 'Shubh sandhya,';
+  document.getElementById('greet').textContent = g;
+  var mons = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  document.getElementById('day').textContent = now.getDate();
+  document.getElementById('dm').textContent = days[now.getDay()] + ', ' + mons[now.getMonth()];
+})();
+</script>
+</body></html>
+"""
+
 
 @app.route("/")
 def home():
-    return CHAT_PAGE
+    return HOME_PAGE
 
 
 @app.route("/settings")
@@ -247,8 +374,7 @@ def settings():
     s = load_settings()
     status = "API key save hai." if s.get("api_key") else "Abhi koi API key save nahi hai."
     model = s.get("model") or DEFAULT_MODEL
-    page = SETTINGS_PAGE.replace("STATUS_TEXT", status).replace("MODEL_VALUE", model)
-    return page
+    return SETTINGS_PAGE.replace("STATUS_TEXT", status).replace("MODEL_VALUE", model)
 
 
 if __name__ == "__main__":
