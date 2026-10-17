@@ -236,6 +236,8 @@ HOME_PAGE = """<!DOCTYPE html>
 body{background:radial-gradient(circle at 50% 30%,#14204a 0,#0a1030 55%,#060a1f 100%) !important;}
 .send,nav .mic{background:linear-gradient(135deg,var(--acc),var(--acc2)) !important;box-shadow:0 0 18px rgba(91,127,255,.55);}
 .card{box-shadow:0 0 14px rgba(91,127,255,.15);}
+.orb{zoom:.75;margin:0 auto !important;}
+main{padding-bottom:24px !important;}
 </style></head>
 <body>
 <div id="app">
