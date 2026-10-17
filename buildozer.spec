@@ -1,4 +1,7 @@
 [app]
+icon.filename = %(source.dir)s/icon.png
+presplash.filename = %(source.dir)s/presplash.png
+android.presplash_color = #0a0f2c
 title = Myra AI
 package.name = myraai
 package.domain = org.myra

@@ -28,28 +28,16 @@ def wait_server():
 
 def open_webview():
     try:
-        from android.runnable import run_on_ui_thread
         from jnius import autoclass
-
-        @run_on_ui_thread
-        def make():
-            try:
-                WebView = autoclass("android.webkit.WebView")
-                WebViewClient = autoclass("android.webkit.WebViewClient")
-                activity = autoclass("org.kivy.android.PythonActivity").mActivity
-                wv = WebView(activity)
-                s = wv.getSettings()
-                s.setJavaScriptEnabled(True)
-                s.setDomStorageEnabled(True)
-                wv.setWebViewClient(WebViewClient())
-                activity.setContentView(wv)
-                wv.loadUrl("http://127.0.0.1:%d" % PORT)
-            except Exception:
-                add("WEBVIEW ERROR:\n" + traceback.format_exc())
-        make()
-        add("webview bana diya")
+        PythonActivity = autoclass("org.kivy.android.PythonActivity")
+        Intent = autoclass("android.content.Intent")
+        Uri = autoclass("android.net.Uri")
+        url = "http://127.0.0.1:%d" % PORT
+        intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+        PythonActivity.mActivity.startActivity(intent)
+        add("browser khul gaya")
     except Exception:
-        add("IMPORT ERROR:\n" + traceback.format_exc())
+        add("BROWSER ERROR:\n" + traceback.format_exc())
 
 def starter():
     threading.Thread(target=run_server, daemon=True).start()
