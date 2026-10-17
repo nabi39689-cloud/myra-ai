@@ -238,6 +238,8 @@ body{background:radial-gradient(circle at 50% 30%,#14204a 0,#0a1030 55%,#060a1f 
 .card{box-shadow:0 0 14px rgba(91,127,255,.15);}
 .orb{zoom:.75;margin:0 auto !important;}
 main{padding-bottom:24px !important;}
+.orb{zoom:.75;margin:0 auto !important;}
+main{padding-bottom:24px !important;}
 </style></head>
 <body>
 <div id="app">
