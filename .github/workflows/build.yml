@@ -1,5 +1,7 @@
 name: Build APK
 on: [push, workflow_dispatch]
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-24.04
@@ -24,8 +26,11 @@ jobs:
       - name: Show error
         if: failure()
         run: tail -n 60 build.log
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - name: Rename APK
+        run: cp bin/*.apk myra-ai.apk
+      - name: Create release
+        uses: softprops/action-gh-release@v2
         with:
-          name: myra-ai-apk
-          path: bin/*.apk
+          tag_name: build-${{ github.run_number }}
+          name: Myra AI build ${{ github.run_number }}
+          files: myra-ai.apk
