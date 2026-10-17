@@ -176,7 +176,7 @@ HOME_PAGE = """<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Myra AI</title>
 <style>
-  :root { --card:#121a38; --line:#24305e; --mut:#8f9bc7; --acc:#4f7cff; }
+  :root { --card:#141c3f; --line:#2b3a78; --mut:#97a3d1; --acc:#5b7fff; --acc2:#b05cff; }
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html, body { margin:0; height:100%; color:#e9edff;
     background:radial-gradient(120% 80% at 50% 15%, #16245a 0%, #0a0f24 60%);
@@ -233,6 +233,9 @@ HOME_PAGE = """<!DOCTYPE html>
   .you { background:#1c2a5c; margin-left:auto; }
   .myra { background:#2a1a5e; }
   .soon { color:var(--mut); text-align:center; margin-top:60px; font-size:18px; }
+body{background:radial-gradient(circle at 50% 30%,#14204a 0,#0a1030 55%,#060a1f 100%) !important;}
+.send,nav .mic{background:linear-gradient(135deg,var(--acc),var(--acc2)) !important;box-shadow:0 0 18px rgba(91,127,255,.55);}
+.card{box-shadow:0 0 14px rgba(91,127,255,.15);}
 </style></head>
 <body>
 <div id="app">
@@ -359,7 +362,7 @@ function voice() {
   if (!SR) {
     var box = document.getElementById('msg');
     box.focus();
-    alert('Is app mein mic abhi seedha nahi chalta. Keyboard ka mic (\ud83c\udfa4) dabakar bolein, phir Send dabayein.');
+    alert('Is app mein mic abhi seedha nahi chalta. Keyboard ka mic (mic) dabakar bolein, phir Send dabayein.');
     return;
   }
   var r = new SR();
