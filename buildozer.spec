@@ -8,7 +8,7 @@ package.domain = org.myra
 source.dir = .
 source.include_exts = py,png,jpg,xml
 version = 0.1
-requirements = python3,flask,werkzeug==2.2.3,jinja2,markupsafe,itsdangerous,click,blinker
+requirements = python3,openssl,certifi,flask,werkzeug==2.2.3,jinja2,markupsafe,itsdangerous,click,blinker
 orientation = portrait
 android.permissions = INTERNET,RECORD_AUDIO
 android.api = 33
