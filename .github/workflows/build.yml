@@ -1,3 +1,4 @@
+
 name: Build APK
 on:
   push:
@@ -22,7 +23,7 @@ jobs:
       - name: Show errors
         if: failure()
         run: tail -n 80 build.log
-      - uses: actions/upload-artifact@v4
-        with:
+      - uses: actions/upload-artifact@v4        with:
           name: jarvis-apk
-          path: bin/*.apk
+          path: bin/*.apkEnter
+
